@@ -1,4 +1,4 @@
-name: Build and Push to ECR
+name: Build and Push to Docker Hub
 
 on:
   push:
@@ -31,8 +31,6 @@ jobs:
       - name: Push Docker Image to Docker Hub
         run: |
           docker push ${{ secrets.DOCKER_USERNAME }}/strapi-app:latest
-
-
 
       - name: Set Image Tag Output
         id: set-tag

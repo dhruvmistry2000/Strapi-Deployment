@@ -4,7 +4,7 @@ name: Deploy Strapi with Terraform
 on:
     workflow_run:
       workflows:
-        - Build and Push to ECR # Name of the ci.yml workflow
+        - Build and Push to Docker Hub # Name of the ci.yml workflow
       types:
         - completed
 

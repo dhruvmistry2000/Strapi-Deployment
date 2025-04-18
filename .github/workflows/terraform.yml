@@ -1,15 +1,15 @@
 name: Deploy Strapi with Terraform
 
 on:
-  workflow_run:
-    workflows:
-      - Build and Push to Docker Hub
-    types:
-      - completed
+  push:
+    branches:
+      - main
 
 permissions:
   contents: read
   actions: read
+env:
+  IMAGE_URI: "{{secrets.DOCKER_USERNAME}}/strapi-app:latest"
 
 jobs:
   deploy-strapi:

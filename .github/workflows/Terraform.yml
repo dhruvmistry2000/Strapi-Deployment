@@ -1,9 +1,12 @@
 name: Deploy Strapi with Terraform
 
+
 on:
-    push:
-        branches:
-            - main
+    workflow_run:
+      workflows:
+        - Build and Push to ECR # Name of the ci.yml workflow
+      types:
+        - completed
 
 jobs:
     deploy-strapi:

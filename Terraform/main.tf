@@ -56,8 +56,8 @@ resource "aws_instance" "strapi-deployment" {
     #!/bin/bash
     sudo apt-get update -y
     curl -fsSL https://get.docker.com | sh
-    sudo docker pull ${var.image_uri}
-    sudo docker run -it -d -p 1337:1337 --name strapi ${var.image_uri}
+    sudo docker pull dhruvmistry200/strapi-app:latest
+    sudo docker run -it -d -p 1337:1337 --name strapi dhruvmistry200/strapi-app:lates
   EOF
   tags = {
     Name = "Strapi-Deployment"

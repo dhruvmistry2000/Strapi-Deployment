@@ -1,4 +1,4 @@
-name: Build and Push to ECR
+name: Build and Push to Docker Hub
 
 on:
   push:
@@ -7,28 +7,18 @@ on:
 
 jobs:
   build-and-push:
-    name: Build and Push Docker Image to ECR
+    name: Build and Push Docker Image to Docker Hub
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout Code
         uses: actions/checkout@v3
 
-      - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v3
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v1
         with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: us-east-1
-
-      - name: Login to Amazon ECR
-        id: login-ecr
-        uses: aws-actions/amazon-ecr-login@v1
-
-      - name: Create ECR Repository
-        run: |
-          aws ecr describe-repositories --repository-names strapi-app || \
-          aws ecr create-repository --repository-name strapi-app
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
 
       - name: Build Docker Image
         run: |
@@ -36,16 +26,16 @@ jobs:
 
       - name: Tag Docker Image
         run: |
-          docker tag strapi-app:latest ${{ steps.login-ecr.outputs.registry }}/strapi-app:latest
+          docker tag strapi-app:latest ${{ secrets.DOCKER_USERNAME }}/strapi-app:latest
 
-      - name: Push Docker Image to ECR
+      - name: Push Docker Image to Docker Hub
         run: |
-          docker push ${{ steps.login-ecr.outputs.registry }}/strapi-app:latest
+          docker push ${{ secrets.DOCKER_USERNAME }}/strapi-app:latest
 
       - name: Set Image Tag Output
         id: set-tag
         run: |
-          echo "image-tag=${{ steps.login-ecr.outputs.registry }}/strapi-app:latest" >> $GITHUB_OUTPUT
+          echo "image-tag=${{ secrets.DOCKER_USERNAME }}/strapi-app:latest" >> $GITHUB_OUTPUT
 
     outputs:
       image-tag: ${{ steps.set-tag.outputs.image-tag }}

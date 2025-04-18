@@ -46,7 +46,7 @@ resource "aws_security_group" "instance_sg" {
   }
 }
 
-resource "aws_instance" "ubuntu_ec2" {
+resource "aws_instance" "strapi-deployment" {
   ami                         = "ami-0fc5d935ebf8bc3bc"
   instance_type               = "t2.micro"
   key_name                    = "starpi-app"
@@ -56,7 +56,6 @@ resource "aws_instance" "ubuntu_ec2" {
     #!/bin/bash
     apt-get update -y
     curl -fsSL https://get.docker.com | sh
-    aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin $(echo "${var.image_uri}" | cut -d'/' -f1)
     docker pull ${var.image_uri}
     docker run -it -d -p 1337:1337 --name strapi ${var.image_uri}
   EOF

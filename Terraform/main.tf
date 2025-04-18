@@ -7,7 +7,7 @@ variable "image_uri" {
 }
 
 resource "aws_security_group" "instance_sg" {
-  name        = "allow_web_and_ssh"
+  name        = "Strapi-app"
   description = "Allow SSH, HTTP, HTTPS and port 1337"
 
   ingress {

@@ -1,6 +1,11 @@
 provider "aws" {
   region = "us-east-1"
 }
+
+variable "image_uri" {
+  description = "URI of the Docker image to deploy"
+}
+
 resource "aws_security_group" "instance_sg" {
   name        = "allow_web_and_ssh"
   description = "Allow SSH, HTTP, HTTPS and port 1337"
@@ -47,18 +52,19 @@ resource "aws_instance" "ubuntu_ec2" {
   key_name                    = "starpi-app"
   vpc_security_group_ids      = [aws_security_group.instance_sg.id]
   associate_public_ip_address = true
-    user_data = <<-EOF
+  user_data = <<-EOF
     #!/bin/bash
     apt-get update -y
     curl -fsSL https://get.docker.com | sh
-    aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin $(echo "${image_uri}" | cut -d'/' -f1)
-    docker pull ${image_uri}
-    docker run -it -d -p 1337:1337 --name strapi ${image_uri}
+    aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin $(echo "${var.image_uri}" | cut -d'/' -f1)
+    docker pull ${var.image_uri}
+    docker run -it -d -p 1337:1337 --name strapi ${var.image_uri}
   EOF
   tags = {
     Name = "Strapi-Deployment"
   }
 }
+
 output "instance_ip" {
   value = aws_instance.ubuntu_ec2.public_ip
 }

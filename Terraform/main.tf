@@ -54,10 +54,10 @@ resource "aws_instance" "strapi-deployment" {
   associate_public_ip_address = true
   user_data = <<-EOF
     #!/bin/bash
-    apt-get update -y
+    sudo apt-get update -y
     curl -fsSL https://get.docker.com | sh
-    docker pull ${var.image_uri}
-    docker run -it -d -p 1337:1337 --name strapi ${var.image_uri}
+    sudo docker pull ${var.image_uri}
+    sudo docker run -it -d -p 1337:1337 --name strapi ${var.image_uri}
   EOF
   tags = {
     Name = "Strapi-Deployment"

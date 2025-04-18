@@ -14,6 +14,11 @@ jobs:
             - name: Checkout Repository
               uses: actions/checkout@v3
 
+            - name: Install Terraform
+              uses: hashicorp/setup-terraform@v2
+              with:
+                terraform_version: 1.5.0 # Replace with your required version
+
             - name: Configure AWS Credentials
               uses: aws-actions/configure-aws-credentials@v3
               with:
@@ -23,7 +28,7 @@ jobs:
 
             - name: Initialize Terraform
               run: |
-                    cd terraform
+                    cd Terraform
                     terraform init \
                     -backend-config="bucket=${{ secrets.TF_BACKEND_BUCKET }}" \
                     -backend-config="key=terraform.tfstate" \
@@ -38,5 +43,5 @@ jobs:
 
             - name: Apply Terraform Configuration
               run: |
-                    cd terraform
+                    cd Terraform
                     terraform apply --auto-approve

@@ -40,9 +40,11 @@ jobs:
                     -backend-config="encrypt=true"
 
             - name: Generate Terraform Plan
+              env:
+                  IMAGE_URI: ${{ github.event.workflow_run.outputs.image-tag }}
               run: |
-                    cd Terraform
-                    terraform plan
+                  cd Terraform
+                  terraform plan -var "image_uri=${IMAGE_URI}"
 
             - name: Apply Terraform Configuration
               env:

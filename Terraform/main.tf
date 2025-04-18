@@ -48,7 +48,7 @@ resource "aws_security_group" "instance_sg" {
 
 resource "aws_instance" "strapi-deployment" {
   ami                         = "ami-0fc5d935ebf8bc3bc"
-  instance_type               = "t2.micro"
+  instance_type               = "t2.medium"
   key_name                    = "starpi-app"
   vpc_security_group_ids      = [aws_security_group.instance_sg.id]
   associate_public_ip_address = true

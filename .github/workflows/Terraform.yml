@@ -53,9 +53,9 @@ jobs:
                 cd Terraform
                 terraform apply -var "image_uri=${IMAGE_URI}" --auto-approve
 
-            - name: Destroy Terraform Configuration
-              env:
-                  IMAGE_URI: ${{ github.event.workflow_run.outputs.image-tag }}
-              run: |
-                    cd Terraform
-                    terraform destroy -var "image_uri=${IMAGE_URI}" --auto-approve
+            # - name: Destroy Terraform Configuration
+            #   env:
+            #       IMAGE_URI: ${{ github.event.workflow_run.outputs.image-tag }}
+            #   run: |
+            #         cd Terraform
+            #         terraform destroy -var "image_uri=${IMAGE_URI}" --auto-approve

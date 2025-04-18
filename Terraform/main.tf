@@ -81,7 +81,7 @@ resource "aws_security_group" "strapi_sg" {
 resource "aws_instance" "strapi_ec2" {
     ami                    = "ami-084568db4383264d4"
     instance_type          = "t2.medium"
-    key_name               = "strapi-app" # Use the existing SSH key
+    key_name               = "starpi-app"
     subnet_id              = aws_subnet.strapi_subnet.id
     vpc_security_group_ids = [aws_security_group.strapi_sg.id]
     associate_public_ip_address = true

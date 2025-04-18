@@ -1,0 +1,17 @@
+{
+  "kind": "singleType",
+  "collectionName": "date1s",
+  "info": {
+    "singularName": "date1",
+    "pluralName": "date1s",
+    "displayName": "Date1"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "attributes": {
+    "Date": {
+      "type": "date"
+    }
+  }
+}

@@ -1,0 +1,25 @@
+{
+  "kind": "collectionType",
+  "collectionName": "colleberators",
+  "info": {
+    "singularName": "colleberator",
+    "pluralName": "colleberators",
+    "displayName": "Collaborator",
+    "description": ""
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "attributes": {
+    "Collaborator1": {
+      "type": "text",
+      "required": false
+    },
+    "User": {
+      "type": "relation",
+      "relation": "manyToMany",
+      "target": "api::article.article",
+      "inversedBy": "Users"
+    }
+  }
+}

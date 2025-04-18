@@ -1,0 +1,43 @@
+name: Build and Push to ECR
+
+on:
+    push:
+        branches:
+            - main
+
+jobs:
+    build-and-push:
+        name: Build and Push Docker Image to ECR
+        runs-on: ubuntu-latest
+
+        steps:
+            - name: Checkout Code
+                uses: actions/checkout@v3
+
+            - name: Configure AWS Credentials
+                uses: aws-actions/configure-aws-credentials@v3
+                with:
+                    aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+                    aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+                    aws-region: us-east-1
+
+            - name: Login to Amazon ECR
+                id: login-ecr
+                uses: aws-actions/amazon-ecr-login@v1
+
+            - name: Create ECR Repository
+                run: |
+                    aws ecr describe-repositories --repository-names Strapi-app || \
+                    aws ecr create-repository --repository-name Strapi-app
+
+            - name: Build Docker Image
+                run: |
+                    docker build -t strapi-app:latest .
+
+            - name: Tag Docker Image
+                run: |
+                    docker tag strapi-app:latest ${{ steps.login-ecr.outputs.registry }}/strapi-app:latest
+
+            - name: Push Docker Image to ECR
+                run: |
+                    docker push ${{ steps.login-ecr.outputs.registry }}/strapi-app:latest

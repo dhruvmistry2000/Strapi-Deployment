@@ -20,18 +20,6 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v3
 
-      - name: Download image_uri artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: image-uri
-          path: .
-
-      - name: Read image URI from file
-        id: read-image
-        run: |
-          IMAGE_URI=$(cat image_uri.txt)
-          echo "IMAGE_URI=$IMAGE_URI" >> $GITHUB_ENV
-
       - name: Install Terraform
         uses: hashicorp/setup-terraform@v2
         with:

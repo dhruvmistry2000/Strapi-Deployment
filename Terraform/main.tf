@@ -65,5 +65,5 @@ resource "aws_instance" "strapi-deployment" {
 }
 
 output "instance_ip" {
-  value = aws_instance.ubuntu_ec2.public_ip
+  value = aws_instance.strapi-deployment.public_ip
 }

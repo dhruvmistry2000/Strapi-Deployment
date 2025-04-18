@@ -33,7 +33,7 @@ jobs:
 
             - name: Generate Terraform Plan
               run: |
-                    cd terraform
+                    cd Terraform
                     terraform plan
 
             - name: Apply Terraform Configuration

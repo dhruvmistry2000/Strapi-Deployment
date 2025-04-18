@@ -41,3 +41,11 @@ jobs:
       - name: Push Docker Image to ECR
         run: |
           docker push ${{ steps.login-ecr.outputs.registry }}/strapi-app:latest
+
+      - name: Set Image Tag Output
+        id: set-tag
+        run: |
+          echo "image-tag=${{ steps.login-ecr.outputs.registry }}/strapi-app:latest" >> $GITHUB_OUTPUT
+
+    outputs:
+      image-tag: ${{ steps.set-tag.outputs.image-tag }}

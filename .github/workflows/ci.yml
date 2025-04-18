@@ -7,7 +7,7 @@ on:
 
 jobs:
   build-and-push:
-    name: Build and Push Docker Image to ECR
+    name: Build and Push Docker Image to Docker Hub
     runs-on: ubuntu-latest
 
     steps:
@@ -32,10 +32,11 @@ jobs:
         run: |
           docker push ${{ secrets.DOCKER_USERNAME }}/strapi-app:latest
 
-      - name: Set Image Tag Output
-        id: set-tag
-        run: |
-          echo "image-tag=${{ secrets.DOCKER_USERNAME }}/strapi-app:latest" >> $GITHUB_OUTPUT
+      - name: Save Image URI to file
+        run: echo "${{ secrets.DOCKER_USERNAME }}/strapi-app:latest" > image_uri.txt
 
-    outputs:
-      image-tag: ${{ steps.set-tag.outputs.image-tag }}
+      - name: Upload image_uri artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: image-uri
+          path: image_uri.txt

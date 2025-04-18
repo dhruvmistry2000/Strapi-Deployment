@@ -1,0 +1,66 @@
+name: Deploy Strapi with Terraform
+
+on:
+  workflow_run:
+    workflows:
+      - Build and Push to Docker Hub
+    types:
+      - completed
+
+jobs:
+  deploy-strapi:
+    name: Deploy Strapi with Terraform
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      - name: Download image_uri artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: image-uri
+          path: .
+
+      - name: Read image URI from file
+        id: read-image
+        run: |
+          IMAGE_URI=$(cat image_uri.txt)
+          echo "image_uri=$IMAGE_URI" >> $GITHUB_ENV
+
+      - name: Install Terraform
+        uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: 1.5.0
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v3
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+
+      - name: Initialize Terraform
+        run: |
+          cd Terraform
+          terraform init \
+          -backend-config="bucket=${{ secrets.TF_BACKEND_BUCKET }}" \
+          -backend-config="key=terraform.tfstate" \
+          -backend-config="region=${{ secrets.TF_BACKEND_REGION }}" \
+          -backend-config="dynamodb_table=${{ secrets.TF_BACKEND_DYNAMO_TABLE }}" \
+          -backend-config="encrypt=true"
+
+      - name: Generate Terraform Plan
+        run: |
+          cd Terraform
+          terraform plan -var "image_uri=$image_uri"
+
+      - name: Apply Terraform Configuration
+        run: |
+          cd Terraform
+          terraform apply -var "image_uri=$image_uri" --auto-approve
+
+      - name: Destroy Terraform Configuration
+        run: |
+          cd Terraform
+          terraform destroy -var "image_uri=$image_uri" --auto-approve

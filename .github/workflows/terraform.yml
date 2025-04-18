@@ -7,6 +7,10 @@ on:
     types:
       - completed
 
+permissions:
+  contents: read
+  actions: read
+
 jobs:
   deploy-strapi:
     name: Deploy Strapi with Terraform
@@ -26,7 +30,7 @@ jobs:
         id: read-image
         run: |
           IMAGE_URI=$(cat image_uri.txt)
-          echo "image_uri=$IMAGE_URI" >> $GITHUB_ENV
+          echo "IMAGE_URI=$IMAGE_URI" >> $GITHUB_ENV
 
       - name: Install Terraform
         uses: hashicorp/setup-terraform@v2
@@ -53,14 +57,14 @@ jobs:
       - name: Generate Terraform Plan
         run: |
           cd Terraform
-          terraform plan -var "image_uri=$image_uri"
+          terraform plan -var "image_uri=$IMAGE_URI"
 
       - name: Apply Terraform Configuration
         run: |
           cd Terraform
-          terraform apply -var "image_uri=$image_uri" --auto-approve
+          terraform apply -var "image_uri=$IMAGE_URI" --auto-approve
 
       - name: Destroy Terraform Configuration
         run: |
           cd Terraform
-          terraform destroy -var "image_uri=$image_uri" --auto-approve
+          terraform destroy -var "image_uri=$IMAGE_URI" --auto-approve

@@ -28,9 +28,9 @@ jobs:
         run: |
           docker build -t ${{ secrets.IMAGE_URI }} .
 
-      - name: Tag Docker Image
-        run: |
-          docker tag strapi-app:latest ${{ secrets.DOCKER_USERNAME }}/strapi-app:latest
+      # - name: Tag Docker Image
+      #   run: |
+      #     docker tag strapi-app:latest ${{ secrets.DOCKER_USERNAME }}/strapi-app:latest
 
       - name: Push Docker Image to Docker Hub
         run: |

@@ -1,11 +1,7 @@
 name: Deploy Strapi with Terraform
 
 on:
-  workflow_run:
-    workflows:
-      - Build and Push to Docker Hub
-    types:
-      - completed
+  workflow_dispatch:
 
 jobs:
   deploy-strapi:

@@ -32,12 +32,7 @@ jobs:
       - name: Initialize Terraform
         run: |
           cd Terraform
-          terraform init \
-          -backend-config="bucket=${{ secrets.TF_BACKEND_BUCKET }}" \
-          -backend-config="key=terraform.tfstate" \
-          -backend-config="region=${{ secrets.TF_BACKEND_REGION }}" \
-          -backend-config="dynamodb_table=${{ secrets.TF_BACKEND_DYNAMO_TABLE }}" \
-          -backend-config="encrypt=true"
+          terraform init
 
       - name: Generate Terraform Plan
         run: |

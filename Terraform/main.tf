@@ -1,18 +1,9 @@
-terraform {
-  backend "s3" {}
-}
-
 provider "aws" {
   region = "us-east-1"
 }
 
-
-variable "image_uri" {
-  description = "URI of the Docker image to deploy"
-}
-
 resource "aws_security_group" "instance_sg" {
-  name        = "Strapi-app1"
+  name        = "Strapi-app"
   description = "Allow SSH, HTTP, HTTPS and port 1337"
 
   ingress {
@@ -52,17 +43,17 @@ resource "aws_security_group" "instance_sg" {
 }
 
 resource "aws_instance" "strapi-deployment" {
-  ami                         = "ami-0fc5d935ebf8bc3bc"
-  instance_type               = "t2.medium"
-  key_name                    = "starpi-app"
+  ami                         = var.ami_id
+  instance_type               = var.instance_type
+  key_name                    = var.key_name
   vpc_security_group_ids      = [aws_security_group.instance_sg.id]
   associate_public_ip_address = true
   user_data = <<-EOF
     #!/bin/bash
     sudo apt-get update -y
     curl -fsSL https://get.docker.com | sh
-    sudo docker pull dhruvmistry200/strapi-app:latest
-    sudo docker run -it -d -p 1337:1337 --name strapi dhruvmistry200/strapi-app:lates
+    sudo docker pull ${var.image_uri}
+    sudo docker run -it -d -p 1337:1337 --name strapi ${var.image_uri}
   EOF
   tags = {
     Name = "Strapi-Deployment"

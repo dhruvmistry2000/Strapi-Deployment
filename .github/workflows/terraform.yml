@@ -58,13 +58,13 @@ jobs:
             -var "key_name=${{ secrets.KEY_NAME }}" \
             --auto-approve
 
-      # # Step 7: (Optional) Destroy Terraform Resources
-      # - name: Destroy Terraform Configuration (Optional)
-      #   run: |
-      #     cd Terraform
-      #     terraform destroy \
-      #       -var "ami_id=${{ secrets.AMI_ID }}" \
-      #       -var "instance_type=${{ secrets.INSTANCE_TYPE }}" \
-      #       -var "image_uri=${{ secrets.IMAGE_URI }}" \
-      #       -var "key_name=${{ secrets.KEY_NAME }}" \
-      #       --auto-approve
+      # Step 7: (Optional) Destroy Terraform Resources
+      - name: Destroy Terraform Configuration (Optional)
+        run: |
+          cd Terraform
+          terraform destroy \
+            -var "ami_id=${{ secrets.AMI_ID }}" \
+            -var "instance_type=${{ secrets.INSTANCE_TYPE }}" \
+            -var "image_uri=${{ secrets.IMAGE_URI }}" \
+            -var "key_name=${{ secrets.KEY_NAME }}" \
+            --auto-approve

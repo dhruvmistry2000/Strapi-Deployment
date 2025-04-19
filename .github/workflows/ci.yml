@@ -37,5 +37,5 @@ jobs:
           docker push ${{ secrets.IMAGE_URI }}
 
       - name: Save Image URI to file
-        run: echo "${{ secrets.IMAGE_URI }}
+        run: echo "${{ secrets.IMAGE_URI }}" > image_uri.txt"
 

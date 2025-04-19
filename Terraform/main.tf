@@ -1,6 +1,11 @@
+terraform {
+  backend "s3" {}
+}
+
 provider "aws" {
   region = "us-east-1"
 }
+
 
 variable "image_uri" {
   description = "URI of the Docker image to deploy"

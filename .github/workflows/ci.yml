@@ -34,14 +34,8 @@ jobs:
 
       - name: Push Docker Image to Docker Hub
         run: |
-          docker push ${{ secrets.DOCKER_USERNAME }}/strapi-app:latest
+          docker push ${{ secrets.IMAGE_URI }}
 
       - name: Save Image URI to file
-        run: echo "${{ secrets.DOCKER_USERNAME }}/strapi-app:latest" > image_uri.txt
+        run: echo "${{ secrets.IMAGE_URI }}
 
-      - name: Upload image_uri artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: image-uri
-          path: image_uri.txt
-          retention-days: 1

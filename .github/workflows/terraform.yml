@@ -1,12 +1,11 @@
 name: Deploy Strapi with Terraform
 
 on:
-  push:
-    branches:
-      - main
-
-env:
-  IMAGE_URI: "{{secrets.DOCKER_USERNAME}}/strapi-app:latest"
+  workflow_run:
+    workflows:
+      - ci.yml  # Trigger this workflow after ci.yml completes
+    types:
+      - completed
 
 jobs:
   deploy-strapi:
@@ -14,37 +13,58 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      # Step 1: Checkout repository
       - name: Checkout Repository
         uses: actions/checkout@v3
 
+      # Step 2: Install Terraform
       - name: Install Terraform
         uses: hashicorp/setup-terraform@v2
         with:
           terraform_version: 1.5.0
 
+      # Step 3: Configure AWS credentials
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v3
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: us-east-1
+          aws-region: us-east-1  # Specify the region here or use the variable
 
+      # Step 4: Initialize Terraform
       - name: Initialize Terraform
         run: |
           cd Terraform
           terraform init
 
+      # Step 5: Generate Terraform Plan
       - name: Generate Terraform Plan
         run: |
           cd Terraform
-          terraform plan -var "image_uri=$IMAGE_URI"
+          terraform plan \
+            -var "ami_id=${{ secrets.AMI_ID }}" \
+            -var "instance_type=${{ secrets.INSTANCE_TYPE }}" \
+            -var "image_uri=${{ secrets.IMAGE_URI }}" \
+            -var "key_name=${{ secrets.KEY_NAME }}"
 
+      # Step 6: Apply Terraform Configuration (Deploy)
       - name: Apply Terraform Configuration
         run: |
           cd Terraform
-          terraform apply -var "image_uri=$IMAGE_URI" --auto-approve
+          terraform apply \
+            -var "ami_id=${{ secrets.AMI_ID }}" \
+            -var "instance_type=${{ secrets.INSTANCE_TYPE }}" \
+            -var "image_uri=${{ secrets.IMAGE_URI }}" \
+            -var "key_name=${{ secrets.KEY_NAME }}" \
+            --auto-approve
 
-      - name: Destroy Terraform Configuration
+      # Step 7: (Optional) Destroy Terraform Resources
+      - name: Destroy Terraform Configuration (Optional)
         run: |
           cd Terraform
-          terraform destroy -var "image_uri=$IMAGE_URI" --auto-approve
+          terraform destroy \
+            -var "ami_id=${{ secrets.AMI_ID }}" \
+            -var "instance_type=${{ secrets.INSTANCE_TYPE }}" \
+            -var "image_uri=${{ secrets.IMAGE_URI }}" \
+            -var "key_name=${{ secrets.KEY_NAME }}" \
+            --auto-approve

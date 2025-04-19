@@ -28,14 +28,6 @@ jobs:
         run: |
           docker build -t ${{ secrets.IMAGE_URI }} .
 
-      # - name: Tag Docker Image
-      #   run: |
-      #     docker tag strapi-app:latest ${{ secrets.DOCKER_USERNAME }}/strapi-app:latest
-
       - name: Push Docker Image to Docker Hub
         run: |
           docker push ${{ secrets.IMAGE_URI }}
-
-      - name: Save Image URI to file
-        run: echo "${{ secrets.IMAGE_URI }}" > image_uri.txt"
-

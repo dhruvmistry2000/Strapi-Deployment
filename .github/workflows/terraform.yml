@@ -3,7 +3,7 @@ name: Deploy Strapi with Terraform
 on:
   workflow_run:
     workflows:
-      - ci.yml  # Trigger this workflow after ci.yml completes
+      - Build and Push to Docker Hub
     types:
       - completed
 

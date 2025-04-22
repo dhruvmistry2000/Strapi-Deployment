@@ -1,11 +1,11 @@
-name: Deploy Strapi with Terraform
+name: Deploy Strapi on ECS with Terraform
 
 on:
   workflow_dispatch:
 
 jobs:
   deploy-strapi:
-    name: Deploy Strapi with Terraform
+    name: Deploy Strapi on ECS with Terraform
     runs-on: ubuntu-latest
 
     steps:
@@ -35,7 +35,7 @@ jobs:
           terraform plan \
             -var "image_uri=${{ secrets.ECR_REPOSITORY }}" \
             -var "region=${{ secrets.AWS_REGION }}" \
-            --auto-approve"
+            --auto-approve
 
       - name: Apply Terraform Configuration
         run: |

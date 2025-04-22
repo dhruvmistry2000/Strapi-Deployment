@@ -34,8 +34,7 @@ jobs:
           cd Terraform2
           terraform plan \
             -var "image_uri=${{ secrets.ECR_REPOSITORY }}" \
-            -var "region=${{ secrets.AWS_REGION }}" \
-            --auto-approve
+            -var "region=${{ secrets.AWS_REGION }}"
 
       - name: Apply Terraform Configuration
         run: |

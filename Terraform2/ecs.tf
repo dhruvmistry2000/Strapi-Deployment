@@ -11,14 +11,22 @@ resource "aws_ecs_task_definition" "strapi_task" {
   execution_role_arn       = aws_iam_role.ecs_task_execution_role.arn
 
   container_definitions = jsonencode([
-    {
-      name  = "strapi"
-      image = var.image_uri
-      portMappings = [{
-        containerPort = 1337
-        protocol      = "tcp"
-      }]
+  {
+    name  = "strapi"
+    image = var.image_uri
+    portMappings = [{
+      containerPort = 1337
+      protocol      = "tcp"
+    }]
+    logConfiguration = {
+      logDriver = "awslogs"
+      options = {
+        awslogs-group         = aws_cloudwatch_log_group.strapi_logs.name
+        awslogs-region        = var.region
+        awslogs-stream-prefix = "strapi"
+      }
     }
+  }
   ])
 }
 

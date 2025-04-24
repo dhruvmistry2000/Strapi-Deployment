@@ -31,7 +31,7 @@ resource "aws_cloudwatch_metric_alarm" "strapi_memory_high" {
 }
 
 resource "aws_cloudwatch_log_group" "strapi_logs" {
-  name = "/ecs/strapi-logs"
+  name = "/strapi/strapi-logs"
 
   tags = {
     Name = "strapi-logs"

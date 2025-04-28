@@ -2,6 +2,16 @@ resource "aws_ecs_cluster" "strapi_cluster" {
   name = "strapi-cluster"
 }
 
+resource "aws_ecs_cluster_capacity_providers" "cluster" {
+  cluster_name = aws_ecs_cluster.strapi_cluster.name
+
+  capacity_providers = ["FARGATE_SPOT", "FARGATE"]
+
+  default_capacity_provider_strategy {
+    capacity_provider = "FARGATE_SPOT"
+  }
+}
+
 resource "aws_ecs_task_definition" "strapi_task" {
   family                   = "strapi-task"
   network_mode             = "awsvpc"
@@ -35,7 +45,6 @@ resource "aws_ecs_service" "strapi_service" {
   cluster         = aws_ecs_cluster.strapi_cluster.id
   task_definition = aws_ecs_task_definition.strapi_task.arn
   desired_count   = 1
-
   capacity_provider_strategy {
     capacity_provider = "FARGATE_SPOT"
     weight            = 1
@@ -47,6 +56,7 @@ resource "aws_ecs_service" "strapi_service" {
     assign_public_ip = true
   }
 
+  # Load Balancer configuration
   load_balancer {
     target_group_arn = aws_lb_target_group.strapi_tg.arn
     container_name   = "strapi"

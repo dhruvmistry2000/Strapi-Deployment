@@ -11,22 +11,22 @@ resource "aws_ecs_task_definition" "strapi_task" {
   execution_role_arn       = aws_iam_role.ecs_task_execution_role.arn
 
   container_definitions = jsonencode([
-  {
-    name  = "strapi"
-    image = var.image_uri
-    portMappings = [{
-      containerPort = 1337
-      protocol      = "tcp"
-    }]
-    logConfiguration = {
-      logDriver = "awslogs"
-      options = {
-        awslogs-group         = aws_cloudwatch_log_group.strapi_logs.name
-        awslogs-region        = var.region
-        awslogs-stream-prefix = "strapi"
+    {
+      name  = "strapi"
+      image = var.image_uri
+      portMappings = [{
+        containerPort = 1337
+        protocol      = "tcp"
+      }]
+      logConfiguration = {
+        logDriver = "awslogs"
+        options = {
+          awslogs-group         = aws_cloudwatch_log_group.strapi_logs.name
+          awslogs-region        = var.region
+          awslogs-stream-prefix = "strapi"
+        }
       }
     }
-  }
   ])
 }
 
@@ -35,7 +35,11 @@ resource "aws_ecs_service" "strapi_service" {
   cluster         = aws_ecs_cluster.strapi_cluster.id
   task_definition = aws_ecs_task_definition.strapi_task.arn
   desired_count   = 1
-  launch_type     = "FARGATE"
+
+  capacity_provider_strategy {
+    capacity_provider = "FARGATE_SPOT"
+    weight            = 1
+  }
 
   network_configuration {
     subnets         = [aws_subnet.subnet-1.id, aws_subnet.subnet-2.id]

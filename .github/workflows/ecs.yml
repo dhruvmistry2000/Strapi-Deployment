@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  deploy-strapi:
+  deploy-strapi-ECR:
     name: Deploy Strapi on ECS with Terraform
     runs-on: ubuntu-latest
 

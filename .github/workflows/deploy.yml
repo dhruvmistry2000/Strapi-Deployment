@@ -53,12 +53,20 @@ jobs:
 
       - name: Initialize Terraform
         run: |
-          cd Terraform2
-          terraform init
-
-      - name: Apply Terraform to deploy ECS and CodeDeploy
-        env:
-          ECR_REPOSITORY: ${{ secrets.ECR_REPOSITORY }}
+            cd Terraform2
+            terraform init
+  
+      - name: Generate Terraform Plan
         run: |
-          cd Terraform2
-          terraform apply -auto-approve -var "image_uri=$ECR_REPOSITORY"
+            cd Terraform2
+            terraform plan \
+              -var "image_uri=${{ secrets.ECR_REPOSITORY }}" \
+              -var "region=${{ secrets.AWS_REGION }}"
+  
+      - name: Apply Terraform Configuration
+        run: |
+            cd Terraform2
+            terraform apply \
+              -var "image_uri=${{ secrets.ECR_REPOSITORY }}" \
+              -var "region=${{ secrets.AWS_REGION }}" \
+              --auto-approve

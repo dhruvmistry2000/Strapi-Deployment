@@ -20,7 +20,8 @@ jobs:
 
       - name: Login to ECR
         run: |
-          aws ecr get-login-password --region ${{ secrets.AWS_REGION }} | docker login --username AWS --password-stdin ${{ secrets.ECR_REPOSITORY }}
+          aws ecr get-login-password --region ${{ secrets.AWS_REGION }} | \
+          docker login --username AWS --password-stdin ${{ secrets.ECR_REPOSITORY }}
 
       - name: Build and tag Docker image
         run: |
@@ -32,8 +33,26 @@ jobs:
       - name: Register new task definition
         id: register_task_definition
         run: |
-          TASK_DEFINITION_ARN=$(aws ecs describe-task-definition --task-definition strapi-task --region ${{ secrets.AWS_REGION }} --query "taskDefinition.taskDefinitionArn" --output text)
-          NEW_TASK_DEFINITION=$(aws ecs register-task-definition --family strapi-task --region ${{ secrets.AWS_REGION }} --task-role-arn "arn:aws:iam::985539759598z:role/ecsTaskExecutionRole" --execution-role-arn "arn:aws:iam::905418107991:role/ecsTaskExecutionRole" --network-mode awsvpc --requires-compatibilities "FARGATE" --cpu 512 --memory 1024 --container-definitions "[{\"name\":\"strapi\",\"image\":\"${{ secrets.ECR_REPOSITORY }}:latest\",\"portMappings\":[{\"containerPort\":1337,\"protocol\":\"tcp\"}]}]" --output json)
+          TASK_DEFINITION_ARN=$(aws ecs describe-task-definition \
+            --task-definition strapi-task \
+            --region ${{ secrets.AWS_REGION }} \
+            --query "taskDefinition.taskDefinitionArn" \
+            --output text)
+
+          echo "Old Task Definition ARN: $TASK_DEFINITION_ARN"
+
+          NEW_TASK_DEFINITION=$(aws ecs register-task-definition \
+            --family strapi-task \
+            --region ${{ secrets.AWS_REGION }} \
+            --task-role-arn "arn:aws:iam::985539759598:role/ecsTaskExecutionRole" \
+            --execution-role-arn "arn:aws:iam::985539759598:role/ecsTaskExecutionRole" \
+            --network-mode awsvpc \
+            --requires-compatibilities "FARGATE" \
+            --cpu 512 \
+            --memory 1024 \
+            --container-definitions "[{\"name\":\"strapi\",\"image\":\"${{ secrets.ECR_REPOSITORY }}:latest\",\"portMappings\":[{\"containerPort\":1337,\"protocol\":\"tcp\"}]}]" \
+            --output json)
+
           echo "New Task Definition: $NEW_TASK_DEFINITION"
 
       - name: Create deployment
@@ -41,4 +60,6 @@ jobs:
           aws deploy create-deployment \
             --application-name StrapiCodeDeployApp \
             --deployment-group-name StrapiDeploymentGroup \
-            --deployment-config-name CodeDeployDefault.ECSAllAtOnce
+            --deployment-config-name CodeDeployDefault.ECSAllAtOnce \
+            --description "GitHub Actions deployment" \
+            --region ${{ secrets.AWS_REGION }}

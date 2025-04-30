@@ -24,16 +24,16 @@ jobs:
 
       - name: Build and tag Docker image
         run: |
-          docker build -t ${{ secrets.ECR_REPOSITORY }}:latest .
+          docker build -t ${{ secrets.ECR_REPOSITORY }} .
 
       - name: Push Docker image to ECR
-        run: docker push ${{ secrets.ECR_REPOSITORY }}:latest
+        run: docker push ${{ secrets.ECR_REPOSITORY }}
 
       - name: Register new task definition
         id: register_task_definition
         run: |
           TASK_DEFINITION_ARN=$(aws ecs describe-task-definition --task-definition strapi-task --region ${{ secrets.AWS_REGION }} --query "taskDefinition.taskDefinitionArn" --output text)
-          NEW_TASK_DEFINITION=$(aws ecs register-task-definition --family strapi-task --region ${{ secrets.AWS_REGION }} --task-role-arn "arn:aws:iam::985539759598:role/ecsTaskExecutionRole" --execution-role-arn "arn:aws:iam::905418107991:role/ecsTaskExecutionRole" --network-mode awsvpc --requires-compatibilities "FARGATE" --cpu 512 --memory 1024 --container-definitions "[{\"name\":\"strapi\",\"image\":\"${{ secrets.ECR_REPOSITORY }}:latest\",\"portMappings\":[{\"containerPort\":1337,\"protocol\":\"tcp\"}]}]" --output json)
+          NEW_TASK_DEFINITION=$(aws ecs register-task-definition --family strapi-task --region ${{ secrets.AWS_REGION }} --task-role-arn "arn:aws:iam::985539759598z:role/ecsTaskExecutionRole" --execution-role-arn "arn:aws:iam::905418107991:role/ecsTaskExecutionRole" --network-mode awsvpc --requires-compatibilities "FARGATE" --cpu 512 --memory 1024 --container-definitions "[{\"name\":\"strapi\",\"image\":\"${{ secrets.ECR_REPOSITORY }}:latest\",\"portMappings\":[{\"containerPort\":1337,\"protocol\":\"tcp\"}]}]" --output json)
           echo "New Task Definition: $NEW_TASK_DEFINITION"
 
       - name: Create deployment

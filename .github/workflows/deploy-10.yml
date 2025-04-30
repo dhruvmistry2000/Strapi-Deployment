@@ -2,7 +2,7 @@ name: Strapi Deployment using ECS in CODEDEPLOY
 
 on:
   workflow_dispatch:  # Triggered manually via the GitHub UI
-  
+
 jobs:
   CodeDeploy:
     runs-on: ubuntu-latest
@@ -22,37 +22,68 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_REGION }}
 
-
       - name: Initialize Terraform
         run: |
-            cd Terraform2
-            terraform init
-  
+          cd Terraform2
+          terraform init
+
       - name: Generate Terraform Plan
         run: |
-            cd Terraform2
-            terraform plan \
-              -var "image_uri=${{ secrets.ECR_REPOSITORY }}" \
-              -var "region=${{ secrets.AWS_REGION }}"
-  
+          cd Terraform2
+          terraform plan \
+            -var "image_uri=${{ secrets.ECR_REPOSITORY }}" \
+            -var "region=${{ secrets.AWS_REGION }}"
+
       - name: Apply Terraform Configuration
         run: |
-            cd Terraform2
-            terraform apply \
-              -var "image_uri=${{ secrets.ECR_REPOSITORY }}" \
-              -var "region=${{ secrets.AWS_REGION }}" \
-              --auto-approve
+          cd Terraform2
+          terraform apply \
+            -var "image_uri=${{ secrets.ECR_REPOSITORY }}" \
+            -var "region=${{ secrets.AWS_REGION }}" \
+            --auto-approve
 
-      - name: Get ECS Task Definition ARN
-        id: get_task_def
+      - name: Register new task definition
+        id: register_task_definition
         run: |
-          TASK_ARN=$(aws ecs list-task-definitions --family-prefix strapi-task --sort DESC --max-items 1 --query 'taskDefinitionArns[0]' --output text)
-          echo "taskDefinitionArn=$TASK_ARN" >> $GITHUB_OUTPUT
+          NEW_TASK_DEF_JSON=$(aws ecs register-task-definition \
+            --family strapi-task \
+            --region ${{ secrets.AWS_REGION }} \
+            --task-role-arn "arn:aws:iam::985539759598:role/ecsTaskExecutionRole" \
+            --execution-role-arn "arn:aws:iam::985539759598:role/ecsTaskExecutionRole" \
+            --network-mode awsvpc \
+            --requires-compatibilities "FARGATE" \
+            --cpu 512 \
+            --memory 1024 \
+            --container-definitions "[{\"name\":\"strapi\",\"image\":\"${{ secrets.ECR_REPOSITORY }}:latest\",\"portMappings\":[{\"containerPort\":1337,\"protocol\":\"tcp\"}]}]" \
+            --output json)
 
-      - name: Trigger CodeDeploy Deployment
+          NEW_TASK_DEF_ARN=$(echo $NEW_TASK_DEF_JSON | jq -r '.taskDefinition.taskDefinitionArn')
+
+          echo "NEW_TASK_DEF_ARN=$NEW_TASK_DEF_ARN" >> $GITHUB_ENV
+
+      - name: Create appspec.yaml dynamically
+        run: |
+          cat > appspec.yaml <<EOF
+          version: 1
+          Resources:
+            - TargetService:
+                Type: AWS::ECS::Service
+                Properties:
+                  TaskDefinition: "$NEW_TASK_DEF_ARN"
+                  LoadBalancerInfo:
+                    ContainerName: "strapi"
+                    ContainerPort: 1337
+          EOF
+
+      - name: Upload AppSpec file to S3
+        run: |
+          aws s3 cp appspec.yaml s3://${{ secrets.S3_BUCKET }}/deploy/appspec.yaml --region ${{ secrets.AWS_REGION }}
+
+      - name: Create deployment
         run: |
           aws deploy create-deployment \
-            --application-name strapi-codedeploy-app \
-            --deployment-group-name strapi-deploy-group \
-            --deployment-config-name CodeDeployDefault.ECSCanary10Percent5Minutes \
-            --revision revisionType=AppSpecContent,appSpecContent="{\"version\":\"1.0\",\"Resources\":[{\"TargetService\":{\"Type\":\"AWS::ECS::Service\",\"Properties\":{\"TaskDefinition\":\"${{ steps.get_task_def.outputs.taskDefinitionArn }}\",\"LoadBalancerInfo\":{\"ContainerName\":\"strapi\",\"ContainerPort\":1337}}}}]}"          
+            --application-name StrapiCodeDeployApp2 \
+            --deployment-group-name StrapiDeploymentGroup2 \
+            --deployment-config-name CodeDeployDefault.ECSAllAtOnce \
+            --s3-location bucket=${{ secrets.S3_BUCKET }},key=deploy/appspec.yaml,bundleType=YAML \
+            --region ${{ secrets.AWS_REGION }}

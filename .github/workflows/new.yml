@@ -2,17 +2,6 @@ name: CD - Infrastructure and Deployment
 
 on:
   workflow_dispatch:
-    inputs:
-      ecr_image:
-        description: 'ECR Image URI (e.g. 123456789012.dkr.ecr.us-east-1.amazonaws.com/strapi-app:sha-123)'
-        required: true
-      action:
-        description: 'Select action'
-        type: choice
-        options:
-          - create-infra
-          - deploy-app
-        required: true
 
 jobs:
   create-infra:

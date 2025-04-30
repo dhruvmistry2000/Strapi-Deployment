@@ -54,26 +54,38 @@ jobs:
 
       - name: Trigger CodeDeploy Deployment
         run: |
-          APPSPEC_JSON=$(jq -n \
-            --arg taskdef "${{ steps.get_task_def.outputs.taskDefinitionArn }}" \
-            '{
-              version: "1.0",
-              Resources: [{
-                TargetService: {
-                  Type: "AWS::ECS::Service",
-                  Properties: {
-                    TaskDefinition: $taskdef,
-                    LoadBalancerInfo: {
-                      ContainerName: "strapi",
-                      ContainerPort: 1337
-                    }
-                  }
-                }
-              }]
-            }')
+          echo "Generating AppSpec JSON..."
+
+          jq -n --arg taskdef "${{ steps.get_task_def.outputs.taskDefinitionArn }}" '
+            {
+              revisionType: "AppSpecContent",
+              appSpecContent: {
+                content: (
+                  {
+                    version: "1.0",
+                    Resources: [{
+                      TargetService: {
+                        Type: "AWS::ECS::Service",
+                        Properties: {
+                          TaskDefinition: $taskdef,
+                          LoadBalancerInfo: {
+                            ContainerName: "strapi",
+                            ContainerPort: 1337
+                          }
+                        }
+                      }
+                    }]
+                  } | tostring
+                )
+              }
+            }
+          ' > appspec.json
+
+          echo "AppSpec revision JSON:"
+          cat appspec.json
 
           aws deploy create-deployment \
             --application-name strapi-app-deploy \
             --deployment-group-name strapi-deploy-group \
             --deployment-config-name CodeDeployDefault.ECSCanary10Percent5Minutes \
-            --revision "revisionType=AppSpecContent,appSpecContent={content=$APPSPEC_JSON}"
+            --cli-input-json file://appspec.json

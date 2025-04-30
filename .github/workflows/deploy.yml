@@ -32,7 +32,7 @@ jobs:
       - name: Update ECS Task Definition
         run: |
           TASK_DEFINITION_ARN=$(aws ecs describe-task-definition --task-definition strapi-task --region ${{ secrets.AWS_REGION }} --query "taskDefinition.taskDefinitionArn" --output text)
-          NEW_TASK_DEFINITION=$(aws ecs update-task-definition --task-definition $TASK_DEFINITION_ARN --container-definitions "[{\"name\":\"strapi\",\"image\":\"${{ secrets.ECR_REPOSITORY }}:latest\"}]" --region ${{ secrets.AWS_REGION }} --output json)
+          NEW_TASK_DEFINITION=$(aws ecs register-task-definition --task-definition $TASK_DEFINITION_ARN --container-definitions "[{\"name\":\"strapi\",\"image\":\"${{ secrets.ECR_REPOSITORY }}:latest\"}]" --region ${{ secrets.AWS_REGION }} --output json)
           echo "New Task Definition: $NEW_TASK_DEFINITION"
           
       - name: Create deployment

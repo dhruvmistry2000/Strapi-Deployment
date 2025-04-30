@@ -55,7 +55,7 @@ jobs:
 
           echo "New Task Definition: $NEW_TASK_DEFINITION"
 
-       - name: Create deployment
+      - name: Create deployment
         run: |
             aws deploy create-deployment \
               --application-name StrapiCodeDeployApp \

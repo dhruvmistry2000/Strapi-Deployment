@@ -24,10 +24,10 @@ jobs:
 
       - name: Build and tag Docker image
         run: |
-          docker build -t ${{ secrets.ECR_REPOSITORY }}:latest .
+          docker build -t ${{ secrets.ECR_REPOSITORY }} .
 
       - name: Push Docker image to ECR
-        run: docker push ${{ secrets.ECR_REPOSITORY }}:latest
+        run: docker push ${{ secrets.ECR_REPOSITORY }}
 
       - name: Update ECS Task Definition
         run: |

@@ -40,7 +40,8 @@ jobs:
       - name: Get ECS Task Definition ARN
         id: get_task_def
         run: |
-           run: TASK_ARN=$(aws ecs list-task-definitions --family-prefix strapi-task --sort DESC --max-items 1 --query 'taskDefinitionArns[0]' --output text) && [ -n "$TASK_ARN" ] && echo "taskDefinitionArn=$TASK_ARN" >> "$GITHUB_OUTPUT" || (echo "Failed to get task definition ARN" >&2; exit 1)
+            task_def_arn=$(aws ecs describe-task-definition --task-definition strapi-app --query 'taskDefinition.taskDefinitionArn' --output text)
+            echo "taskDefinitionArn=$task_def_arn" >> $GITHUB_ENV
 
       - name: Trigger CodeDeploy Deployment
         run: |

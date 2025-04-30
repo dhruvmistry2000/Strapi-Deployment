@@ -4,7 +4,7 @@ on:
   workflow_dispatch:  # Triggered manually via the GitHub UI
   
 jobs:
-  apply:
+  CodeDeploy:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -22,20 +22,26 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_REGION }}
 
-      - name: Terraform Init
-        run: |
-          cd Terraform2
-          terraform init
 
-      - name: Terraform plan
+      - name: Initialize Terraform
         run: |
-          cd Terraform2
-          terraform plan
-          
-      - name: Terraform Apply
+            cd Terraform2
+            terraform init
+  
+      - name: Generate Terraform Plan
         run: |
-          cd Terraform2
-          terraform apply -auto-approve
+            cd Terraform2
+            terraform plan \
+              -var "image_uri=${{ secrets.ECR_REPOSITORY }}" \
+              -var "region=${{ secrets.AWS_REGION }}"
+  
+      - name: Apply Terraform Configuration
+        run: |
+            cd Terraform2
+            terraform apply \
+              -var "image_uri=${{ secrets.ECR_REPOSITORY }}" \
+              -var "region=${{ secrets.AWS_REGION }}" \
+              --auto-approve
 
       - name: Get ECS Task Definition ARN
         id: get_task_def

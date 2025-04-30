@@ -55,11 +55,12 @@ jobs:
 
           echo "New Task Definition: $NEW_TASK_DEFINITION"
 
-      - name: Create deployment
+       - name: Create deployment
         run: |
-          aws deploy create-deployment \
-            --application-name StrapiCodeDeployApp \
-            --deployment-group-name StrapiDeploymentGroup \
-            --deployment-config-name CodeDeployDefault.ECSAllAtOnce \
-            --description "GitHub Actions deployment" \
-            --region ${{ secrets.AWS_REGION }}
+            aws deploy create-deployment \
+              --application-name StrapiCodeDeployApp \
+              --deployment-group-name StrapiDeploymentGroup \
+              --deployment-config-name CodeDeployDefault.ECSAllAtOnce \
+              --github-location repository=${{ github.repository }},commitId=${{ github.sha }} \
+              --region ${{ secrets.AWS_REGION }}
+      

@@ -17,7 +17,7 @@ resource "aws_lb_target_group" "strapi_tg_blue" {
     path                = "/"
     interval            = 10
     timeout             = 5
-    healthy_threshold   = 1
+    healthy_threshold   = 2
     unhealthy_threshold = 2
     matcher             = "200-399"
   }
@@ -34,7 +34,7 @@ resource "aws_lb_target_group" "strapi_tg_green" {
     path                = "/"
     interval            = 10
     timeout             = 5
-    healthy_threshold   = 1
+    healthy_threshold   = 2
     unhealthy_threshold = 2
     matcher             = "200-399"
   }

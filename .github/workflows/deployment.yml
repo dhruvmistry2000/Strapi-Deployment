@@ -1,10 +1,10 @@
 name: Strapi Deployment using ECS
 
 on:
-  workflow_dispatch:  # Triggered manually via the GitHub UI
+  workflow_dispatch:
   
 jobs:
-  apply:
+  deploy:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code

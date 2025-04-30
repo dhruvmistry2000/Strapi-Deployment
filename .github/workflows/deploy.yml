@@ -1,70 +1,92 @@
-name: Deploy to AWS CodeDeploy (Docker)
+name: CD - Infrastructure and Deployment
 
 on:
   workflow_dispatch:
 
 jobs:
-  deploy:
+  infra-and-deploy:
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout code
+      - name: Checkout
         uses: actions/checkout@v3
 
-      - name: Configure AWS credentials
+      - name: Configure AWS
         uses: aws-actions/configure-aws-credentials@v2
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ secrets.AWS_REGION }}
+          aws-region: us-east-1
 
-      - name: Login to ECR
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+
+      - name: Terraform Init
         run: |
-          aws ecr get-login-password --region ${{ secrets.AWS_REGION }} | \
-          docker login --username AWS --password-stdin ${{ secrets.ECR_REPOSITORY }}
+          cd Terraform3
+          terraform init
 
-      # - name: Build and tag Docker image
-      #   run: |
-      #     docker build -t ${{ secrets.ECR_REPOSITORY }} .
-
-      # - name: Push Docker image to ECR
-      #   run: docker push ${{ secrets.ECR_REPOSITORY }}
-        
-      - name: Upload AppSpec file to S3
+      - name: Terraform Apply
         run: |
-          aws s3 cp appspec.yaml s3://${{ secrets.S3_BUCKET }}/deploy/appspec.yaml --region ${{ secrets.AWS_REGION }}
+          cd Terraform3
+          terraform apply -auto-approve
 
-      # - name: Register new task definition
-      #   id: register_task_definition
-      #   run: |
-      #     TASK_DEFINITION_ARN=$(aws ecs describe-task-definition \
-      #       --task-definition strapi-task \
-      #       --region ${{ secrets.AWS_REGION }} \
-      #       --query "taskDefinition.taskDefinitionArn" \
-      #       --output text)
-
-      #     echo "Old Task Definition ARN: $TASK_DEFINITION_ARN"
-
-      #     NEW_TASK_DEFINITION=$(aws ecs register-task-definition \
-      #       --family strapi-task \
-      #       --region ${{ secrets.AWS_REGION }} \
-      #       --task-role-arn "arn:aws:iam::985539759598:role/ecsTaskExecutionRole" \
-      #       --execution-role-arn "arn:aws:iam::985539759598:role/ecsTaskExecutionRole" \
-      #       --network-mode awsvpc \
-      #       --requires-compatibilities "FARGATE" \
-      #       --cpu 512 \
-      #       --memory 1024 \
-      #       --container-definitions "[{\"name\":\"strapi\",\"image\":\"${{ secrets.ECR_REPOSITORY }}:latest\",\"portMappings\":[{\"containerPort\":1337,\"protocol\":\"tcp\"}]}]" \
-      #       --output json)
-
-      #     echo "New Task Definition: $NEW_TASK_DEFINITION"
-
-      - name: Create deployment
+      - name: Get ECS Task Definition ARN
+        id: get_task_def
         run: |
-             aws deploy create-deployment \
-                --application-name StrapiCodeDeployApp \
-                --deployment-group-name StrapiDeploymentGroup \
-                --deployment-config-name CodeDeployDefault.ECSAllAtOnce \
-                --s3-location bucket=${{ secrets.S3_BUCKET }},key=deploy/appspec.yaml,bundleType=YAML \
-                --region ${{ secrets.AWS_REGION }}
-      
+          RAW_OUTPUT=$(aws ecs list-task-definitions \
+            --family-prefix strapi-task \
+            --sort DESC \
+            --max-items 1 \
+            --query 'taskDefinitionArns' \
+            --output text)
+
+          echo "Raw output: $RAW_OUTPUT"
+
+          TASK_ARN=$(echo "$RAW_OUTPUT" | grep -v 'None' | head -n 1)
+
+          if [ -z "$TASK_ARN" ]; then
+            echo "No valid task definition ARN found. Exiting."
+            exit 1
+          fi
+
+          echo "Valid task definition ARN: $TASK_ARN"
+          echo "taskDefinitionArn=$TASK_ARN" >> "$GITHUB_OUTPUT"
+
+      - name: Trigger CodeDeploy Deployment
+        run: |
+          echo "Generating CodeDeploy deployment JSON..."
+
+          jq -n --arg taskdef "${{ steps.get_task_def.outputs.taskDefinitionArn }}" '
+            {
+              applicationName: "strapi-app-deploy",
+              deploymentGroupName: "strapi-deploy-group",
+              deploymentConfigName: "CodeDeployDefault.ECSCanary10Percent5Minutes",
+              revision: {
+                revisionType: "AppSpecContent",
+                appSpecContent: {
+                  content: (
+                    {
+                      version: "1.0",
+                      Resources: [{
+                        TargetService: {
+                          Type: "AWS::ECS::Service",
+                          Properties: {
+                            TaskDefinition: $taskdef,
+                            LoadBalancerInfo: {
+                              ContainerName: "strapi",
+                              ContainerPort: 1337
+                            }
+                          }
+                        }
+                      }]
+                    } | tostring
+                  )
+                }
+              }
+            }
+          ' > codedeploy.json
+
+          echo "Final deployment input JSON:"
+          cat codedeploy.json
+
+          aws deploy create-deployment --cli-input-json file://codedeploy.json

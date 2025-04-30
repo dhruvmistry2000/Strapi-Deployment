@@ -45,8 +45,8 @@ jobs:
 
       - name: Trigger CodeDeploy Deployment
         run: |
-          aws deploy create-deployment \
-            --application-name strapi-codedeploy-app \
-            --deployment-group-name strapi-deploy-group \
-            --deployment-config-name CodeDeployDefault.ECSCanary10Percent5Minutes \
-            --revision revisionType=AppSpecContent,appSpecContent="{\"version\":\"1.0\",\"Resources\":[{\"TargetService\":{\"Type\":\"AWS::ECS::Service\",\"Properties\":{\"TaskDefinition\":\"${{ secrets.TASK_ARN }}\",\"LoadBalancerInfo\":{\"ContainerName\":\"strapi\",\"ContainerPort\":1337}}}}]}"          
+            aws deploy create-deployment \
+              --application-name strapi-codedeploy-app \
+              --deployment-group-name strapi-deploy-group \
+              --deployment-config-name CodeDeployDefault.ECSCanary10Percent5Minutes \
+              --revision revisionType=AppSpecContent,appSpecContent="{\"version\":\"1.0\",\"Resources\":[{\"TargetService\":{\"Type\":\"AWS::ECS::Service\",\"Properties\":{\"TaskDefinition\":\"${{ secret.TASK_ARN }}\",\"LoadBalancerInfo\":{\"ContainerName\":\"strapi\",\"ContainerPort\":1337}}}}]}"   

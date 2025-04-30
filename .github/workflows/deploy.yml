@@ -1,9 +1,7 @@
 name: Deploy to AWS CodeDeploy (Docker)
 
 on:
-  push:
-    branches:
-      - main # Or your main branch
+  workflow_dispatch:
 
 jobs:
   deploy:
@@ -18,30 +16,28 @@ jobs:
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ secrets.AWS_REGION }} 
+          aws-region: ${{ secrets.AWS_REGION }}
 
       - name: Login to ECR
         run: |
-          aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 985539759598.dkr.ecr.us-east-1.amazonaws.com # Replace with your AWS region and account ID
+          aws ecr get-login-password --region ${{ secrets.AWS_REGION }} | docker login --username AWS --password-stdin ${{ secrets.ECR_REPOSITORY }}
 
       - name: Build and tag Docker image
         run: |
-          docker build -t ${{ secrets.ECR_REPOSITORY }} . # Replace with your Docker image name
-          
+          docker build -t ${{ secrets.ECR_REPOSITORY }}:latest .
 
       - name: Push Docker image to ECR
-        run: docker push ${{ secrets.ECR_REPOSITORY }}
-        
-      - name: Get task definition ARN
-        id: get_task_definition
-        run: |
-          TASK_DEFINITION_ARN=$(aws ecs describe-task-definition --task-definition strapi-task --region us-east-1 --query "taskDefinition.taskDefinitionArn" --output text) # Replace with your task definition family
-          echo "::set-output name=task_definition_arn::$TASK_DEFINITION_ARN"
+        run: docker push ${{ secrets.ECR_REPOSITORY }}:latest
 
+      - name: Update ECS Task Definition
+        run: |
+          TASK_DEFINITION_ARN=$(aws ecs describe-task-definition --task-definition strapi-task --region ${{ secrets.AWS_REGION }} --query "taskDefinition.taskDefinitionArn" --output text)
+          NEW_TASK_DEFINITION=$(aws ecs update-task-definition --task-definition $TASK_DEFINITION_ARN --container-definitions "[{\"name\":\"strapi\",\"image\":\"${{ secrets.ECR_REPOSITORY }}:latest\"}]" --region ${{ secrets.AWS_REGION }} --output json)
+          echo "New Task Definition: $NEW_TASK_DEFINITION"
+          
       - name: Create deployment
         run: |
           aws deploy create-deployment \
             --application-name StrapiCodeDeployApp \
             --deployment-group-name StrapiDeploymentGroup \
-            --deployment-config-name CodeDeployDefault.ECSAllAtOnce \
-            --task-definition ${{ steps.get_task_definition.outputs.task_definition_arn }}
+            --deployment-config-name CodeDeployDefault.ECSAllAtOnce

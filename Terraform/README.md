@@ -9,6 +9,8 @@ The Terraform configuration in this directory deploys the following infrastructu
 *   **EC2 Instance:** An EC2 instance to host the Strapi application.
 *   **Security Group:** A security group to control network access to the EC2 instance, allowing SSH, HTTP, HTTPS, and traffic on port 1337.
 
+![Strapi_Deployment_EC2](diagram.png)
+
 ## Prerequisites
 
 Before using this Terraform configuration, you need to have the following:

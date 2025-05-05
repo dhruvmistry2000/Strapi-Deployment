@@ -15,7 +15,7 @@ The Terraform configuration in this directory deploys the following infrastructu
 *   **CloudWatch Log Group:** Creates a CloudWatch Log Group for application logs.
 *   **CloudWatch Alarms:** Configures CloudWatch alarms for CPU, Memory, Network In/Out, and Task Count.
 *   **CodeDeploy:** Sets up CodeDeploy for blue/green deployments.
-
+![CodeDeploy](./diagram.png)
 ## Prerequisites
 
 Before using this Terraform configuration, ensure you have:

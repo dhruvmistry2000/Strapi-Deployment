@@ -17,6 +17,7 @@ The Terraform configuration in this directory deploys the following infrastructu
 *   **CloudWatch Logs:** Configures CloudWatch Logs for container logging.
 *   **IAM Roles:** IAM roles for ECS task execution and CodeDeploy.
 
+![ECS](./diagram.png)
 ## File Breakdown
 
 *   `vpc.tf`: Defines the VPC and subnet resources.
